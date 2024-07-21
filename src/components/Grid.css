@@ -1,0 +1,65 @@
+/* Grid.css */
+.grid-container {
+    display: grid;
+    grid-template-areas:
+        ". column-sums"
+        "row-sums grid";
+    align-items: center;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+.header-spacer {
+    grid-area: .;
+}
+
+.column-sums {
+    grid-area: column-sums;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.row-sums {
+    grid-area: row-sums;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.column-sum,
+.row-sum {
+    background-color: #e0e0e0;
+    border: 1px solid transparent;
+    padding: 20px;
+    text-align: center;
+    font-size: 18px;
+    width: 16px;
+}
+
+.grid-cell {
+    border: 1px solid #ccc;
+    padding: 20px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.grid {
+    grid-area: grid;
+    display: grid;
+}
+
+.grid-row {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+}
+
+.transparent{
+    background-color: blanchedalmond;
+    color: transparent;
+}
+
+.solved{
+    background-color: rgb(217, 245, 176);
+}
