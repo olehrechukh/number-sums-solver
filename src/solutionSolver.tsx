@@ -3,7 +3,13 @@ import { GridModel, GridValue } from './GridModel';
 export type SolutionFunction = (input: GridModel) => GridModelResult;
 export interface GridModelResult { value: GridModel; modified: boolean; }
 
-export const reduceHigherValues: SolutionFunction = (props) => {
+/**
+ * Hides grid values that are higher than their corresponding row or column sums.
+ * 
+ * @param {GridModel} props - The grid model containing the grid and sums.
+ * @returns {GridModelResult} - The updated grid model with modifications flag.
+ */
+export const hideHigherValues: SolutionFunction = (props: GridModel): GridModelResult => {
   const gridModel = structuredClone(props);
   const { grid, rowSums, columnSums } = gridModel;
   let modified = false;
@@ -23,38 +29,13 @@ export const reduceHigherValues: SolutionFunction = (props) => {
   return { value: gridModel, modified };
 };
 
-export const selectUniqueSumValues: SolutionFunction = (props) => {
-  const gridModel = structuredClone(props);
-  const { grid, rowSums, columnSums } = gridModel;
-  let modified = false;
-
-  const processValues = (values: GridValue[], targetSum: number) => {
-    const incompleteValues = values.filter(cell => !isCompleted(cell));
-    const combinations = generateCombinations(incompleteValues).filter(c => c.reduce((sum, current) => sum + current, 0) === targetSum);
-    const intersections = findIntersectionItems(combinations);
-
-    intersections.forEach((value, key) => {
-      const intersectedValues = incompleteValues.filter(x => x.value === key);
-      if (intersectedValues.length === value) {
-        intersectedValues.forEach(cell => setSolved(gridModel, cell));
-        modified = true;
-      }
-    });
-  };
-
-  grid.forEach((row, rowIndex) => {
-    processValues(row, rowSums[rowIndex]);
-  });
-
-  grid[0].forEach((_, columnIndex) => {
-    const columnValues = grid.map(row => row[columnIndex]);
-    processValues(columnValues, columnSums[columnIndex]);
-  });
-
-  return { value: gridModel, modified };
-};
-
-export const reduceCombinations: SolutionFunction = (props) => {
+/**
+ * Hides redundant values in rows and columns based on all possible combinations and given sums.
+ * 
+ * @param {GridModel} props - The grid model containing the grid and sums.
+ * @returns {GridModelResult} - The updated grid model with modifications flag.
+ */
+export const hideCombinations: SolutionFunction = (props: GridModel): GridModelResult => {
   const gridModel = structuredClone(props);
   const { grid } = gridModel;
   let modified = false;
@@ -88,8 +69,13 @@ export const reduceCombinations: SolutionFunction = (props) => {
   return { value: gridModel, modified };
 };
 
-
-export const selectSumValues: SolutionFunction = (props) => {
+/**
+ * Solves all values in rows or columns where the sum matches the given sums.
+ * 
+ * @param {GridModel} props - The grid model containing the grid and sums.
+ * @returns {GridModelResult} - The updated grid model with modifications flag.
+ */
+export const solveSumValues: SolutionFunction = (props: GridModel): GridModelResult => {
   const gridModel = structuredClone(props);
   const { grid, rowSums, columnSums } = gridModel;
   let modified = false;
@@ -119,6 +105,43 @@ export const selectSumValues: SolutionFunction = (props) => {
         modified = true;
       });
     }
+  });
+
+  return { value: gridModel, modified };
+};
+
+/**
+ * Solves grid values by identifying and solving unique values that satisfy the row or column sums.
+ * 
+ * @param {GridModel} props - The grid model containing the grid and sums.
+ * @returns {GridModelResult} - The updated grid model with modifications flag.
+ */
+export const solveUniqueSumValues: SolutionFunction = (props: GridModel): GridModelResult => {
+  const gridModel = structuredClone(props);
+  const { grid, rowSums, columnSums } = gridModel;
+  let modified = false;
+
+  const processValues = (values: GridValue[], targetSum: number) => {
+    const incompleteValues = values.filter(cell => !isCompleted(cell));
+    const combinations = generateCombinations(incompleteValues).filter(c => c.reduce((sum, current) => sum + current, 0) === targetSum);
+    const intersections = findIntersectionItems(combinations);
+
+    intersections.forEach((value, key) => {
+      const intersectedValues = incompleteValues.filter(x => x.value === key);
+      if (intersectedValues.length === value) {
+        intersectedValues.forEach(cell => setSolved(gridModel, cell));
+        modified = true;
+      }
+    });
+  };
+
+  grid.forEach((row, rowIndex) => {
+    processValues(row, rowSums[rowIndex]);
+  });
+
+  grid[0].forEach((_, columnIndex) => {
+    const columnValues = grid.map(row => row[columnIndex]);
+    processValues(columnValues, columnSums[columnIndex]);
   });
 
   return { value: gridModel, modified };

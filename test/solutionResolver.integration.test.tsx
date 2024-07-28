@@ -1,5 +1,5 @@
 import { test } from 'vitest'
-import { selectUniqueSumValues, reduceHigherValues, reduceCombinations, selectSumValues, SolutionFunction } from '../src/solutionResolver';
+import { solveUniqueSumValues, hideHigherValues, hideCombinations, solveSumValues, SolutionFunction } from '../src/solutionSolver';
 import gridConfig from './data/gridConfig.json';
 
 import { GridModel, GridModelRaw } from '../src/GridModel';
@@ -11,7 +11,7 @@ test('integration test/gridConfig.json', () => {
 
 
 const checkSolution = (gridModel: GridModel) => {
-    const solutions: SolutionFunction[] = [reduceHigherValues, reduceCombinations, selectSumValues, selectUniqueSumValues];
+    const solutions: SolutionFunction[] = [hideHigherValues, hideCombinations, solveSumValues, solveUniqueSumValues];
 
     let solved = false;
 

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { selectUniqueSumValues, reduceHigherValues, reduceCombinations, selectSumValues } from '../src/solutionResolver';
+import { solveUniqueSumValues, hideHigherValues, hideCombinations, solveSumValues } from '../src/solutionSolver';
 import { GridModel, GridValue } from '../src/GridModel';
 
 const createGridValue = (value: number, hidden = false, solved = false): GridValue => ({ value, hidden, solved });
@@ -20,7 +20,7 @@ test('reduceHigherValues hides values greater than row or column sum', () => {
     const columnSums = [4, 6];
     const input = createGridModel(grid, rowSums, columnSums);
 
-    const { value, modified } = reduceHigherValues(input);
+    const { value, modified } = hideHigherValues(input);
 
     const expected = createGridModel([
         [createGridValue(5, true), createGridValue(2)],
@@ -39,7 +39,7 @@ test('solves unique value in a row correctly', () => {
     const columnSums = [3, 3, 3];
     const input = createGridModel(grid, rowSums, columnSums);
 
-    const { value, modified } = selectUniqueSumValues(input);
+    const { value, modified } = solveUniqueSumValues(input);
 
     const expected = createGridModel([[createGridValue(2), createGridValue(2), createGridValue(1, false, true)]], [2], [3, 3, 2]);
 
@@ -57,7 +57,7 @@ test('solves unique value in a column correctly', () => {
     const columnSums = [3];
     const input = createGridModel(grid, rowSums, columnSums);
 
-    const { value, modified } = selectUniqueSumValues(input);
+    const { value, modified } = solveUniqueSumValues(input);
 
     const expected = createGridModel([[createGridValue(2)], [createGridValue(2)], [createGridValue(1, false, true)]], [3, 3, 2], [2]);
 
@@ -74,7 +74,7 @@ test('solves multiple values in a row correctly', () => {
     const columnSums = [4, 4, 4, 4];
     const input = createGridModel(grid, rowSums, columnSums);
 
-    const { value, modified } = selectUniqueSumValues(input);
+    const { value, modified } = solveUniqueSumValues(input);
 
     const expected = createGridModel([[createGridValue(3), createGridValue(3), createGridValue(1, false, true), createGridValue(1, false, true)]], [3], [4, 4, 3, 3]);
 
@@ -92,7 +92,7 @@ test('solves multiple values in a column correctly', () => {
     const columnSums = [5];
     const input = createGridModel(grid, rowSums, columnSums);
 
-    const { value, modified } = selectUniqueSumValues(input);
+    const { value, modified } = solveUniqueSumValues(input);
 
     const expected = createGridModel([[createGridValue(3)], [createGridValue(3)], [createGridValue(1, false, true)], [createGridValue(1, false, true)]], [4, 4, 3, 3], [3]);
 
@@ -110,7 +110,7 @@ test('reduceCombinations hides redundant values correctly', () => {
     const columnSums = [5, 3, 3];
     const input = createGridModel(grid, rowSums, columnSums);
 
-    const { value, modified } = reduceCombinations(input);
+    const { value, modified } = hideCombinations(input);
 
     const expected = createGridModel([
         [createGridValue(2), createGridValue(3), createGridValue(4, true)],
@@ -121,7 +121,7 @@ test('reduceCombinations hides redundant values correctly', () => {
     expect(value).toEqual(expected);
 });
 
-test('selectSumValues solves all values when sums are correct', () => {
+test('solveSumValues solves all values when sums are correct', () => {
     const grid = [
         [createGridValue(2), createGridValue(3)],
         [createGridValue(3), createGridValue(1)]
@@ -130,7 +130,7 @@ test('selectSumValues solves all values when sums are correct', () => {
     const columnSums = [5, 4];
     const input = createGridModel(grid, rowSums, columnSums);
 
-    const { value, modified } = selectSumValues(input);
+    const { value, modified } = solveSumValues(input);
 
     const expected = createGridModel([
         [createGridValue(2, false, true), createGridValue(3, false, true)],

@@ -1,7 +1,7 @@
 import Grid from './components/Grid';
 import gridConfig from './gridConfig.json';
 import { GridModelRaw, GridModel } from './GridModel';
-import { reduceHigherValues, reduceCombinations, selectSumValues, selectUniqueSumValues, SolutionFunction } from './solutionResolver';
+import { hideHigherValues, hideCombinations, solveSumValues, solveUniqueSumValues, SolutionFunction } from './solutionSolver';
 import './App.css'
 
 
@@ -17,7 +17,7 @@ function initializeGridModel(rawModel: GridModelRaw): GridModel {
 function App() {
 
   const solutionGrids: GridModel[] = [];
-  const solutions: SolutionFunction[] = [reduceHigherValues, reduceCombinations, selectSumValues, selectUniqueSumValues];
+  const solutions: SolutionFunction[] = [hideHigherValues, hideCombinations, solveSumValues, solveUniqueSumValues];
 
   let gridModel = initializeGridModel(gridConfig);
 
