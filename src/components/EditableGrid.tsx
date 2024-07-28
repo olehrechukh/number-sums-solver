@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { GridModelRaw } from '../GridModel';
+import { Tooltip } from 'react-tooltip';
+import { MdDelete } from "react-icons/md";
 
 import './EditableGrid.css';
 
@@ -13,7 +15,7 @@ const EditableGrid: React.FC<EditableGridProps> = (props) => {
   const [grid, setGrid] = useState(data.grid);
   const [rowSums, setRowSums] = useState(data.rowSums);
   const [columnSums, setColumnSums] = useState(data.columnSums);
-
+  // const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
   const addRow = () => {
     const newRowSums = [...rowSums];
@@ -25,7 +27,7 @@ const EditableGrid: React.FC<EditableGridProps> = (props) => {
     setRowSums(newRowSums);
     setGrid(newGrid);
   };
-  
+
   const addColumn = () => {
     const newColumnSums = [...columnSums];
     const newGrid = [...grid];
@@ -58,22 +60,62 @@ const EditableGrid: React.FC<EditableGridProps> = (props) => {
     setColumnSums(newColumnSums);
   };
 
+  const handleDeleteRow = (rowIndex: number) => {
+    const newRowSums = [...rowSums].filter((_, index) => rowIndex != index);
+    const newGrid = [...grid].filter((_, index) => rowIndex != index);
+
+    setRowSums(newRowSums);
+    setGrid(newGrid);
+  };
+
+  const handleDeleteColumn = (columnIndex: number) => {
+    const newColumnSums = [...columnSums].filter((_, index) => columnIndex != index);
+    const newGrid = [...grid].map(x => x.filter((_, index) => columnIndex != index));
+
+    setColumnSums(newColumnSums);
+    setGrid(newGrid);
+  };
+
+  const parse = (value: string | null): number => {
+    if (value === null) {
+      return -1;
+    }
+
+    return parseInt(value);
+  }
+
   return (
     <div className='form-container'>
-
       <div className="grid-container">
         <div className="empty-corner"></div>
         <div className="column-sums">
           {columnSums.map((sum, columnIndex) => (
-            <input key={columnIndex} className="column-sum" type="number" value={sum}
+            <input key={columnIndex}
+              className="column-sum"
+              data-tooltip-place="top"
+              data-tooltip-id="delete-column"
+              data-tooltip-content={columnIndex + ""} 
+              type="number" 
+              value={sum}
               onChange={(e) => handleColumnSumChange(columnIndex, parseInt(e.target.value))}
             />
           ))}
         </div>
         <div className="row-sums">
           {rowSums.map((sum, rowIndex) => (
-            <input key={rowIndex} className="row-sum" type="number" value={sum}
-              onChange={(e) => handleRowSumChange(rowIndex, parseInt(e.target.value))} />
+            <div
+              key={rowIndex}
+              className="row-sum-container">
+              <input
+                className="row-sum"
+                data-tooltip-place="right"
+                data-tooltip-id="delete-row"
+                data-tooltip-content={rowIndex + ""}
+                type="number"
+                value={sum}
+                onChange={(e) => handleRowSumChange(rowIndex, parseInt(e.target.value))}
+              />
+            </div>
           ))}
         </div>
         <div className="grid">
@@ -92,8 +134,22 @@ const EditableGrid: React.FC<EditableGridProps> = (props) => {
       <button onClick={() => addColumn()}>Add column</button>
       <button className="save" onClick={() => props.onChange({ grid, rowSums, columnSums })}>Save</button>
 
-    </div>
 
+      <Tooltip
+        clickable
+        id="delete-row"
+        render={({ content }) => (
+          <MdDelete onClick={() => handleDeleteRow(parse(content))}></MdDelete>
+        )}
+      />
+      <Tooltip
+        clickable
+        id="delete-column"
+        render={({ content }) => (
+          <MdDelete onClick={() => handleDeleteColumn(parse(content))}></MdDelete>
+        )}
+      />
+    </div>
   );
 };
 
