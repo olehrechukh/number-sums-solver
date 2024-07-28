@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GridModelRaw } from '../GridModel';
 import { Tooltip } from 'react-tooltip';
 import { MdDelete } from "react-icons/md";
+import { FaFileExport } from "react-icons/fa";
 
 import './EditableGrid.css';
 
@@ -15,7 +16,6 @@ const EditableGrid: React.FC<EditableGridProps> = (props) => {
   const [grid, setGrid] = useState(data.grid);
   const [rowSums, setRowSums] = useState(data.rowSums);
   const [columnSums, setColumnSums] = useState(data.columnSums);
-  // const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
   const addRow = () => {
     const newRowSums = [...rowSums];
@@ -83,9 +83,20 @@ const EditableGrid: React.FC<EditableGridProps> = (props) => {
 
     return parseInt(value);
   }
+  const exportModel = () => {
+    const gridModel: GridModelRaw = { columnSums, rowSums, grid };
+    const fileData = JSON.stringify(gridModel, null, 2);
+    const blob = new Blob([fileData], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = "data-model.json";
+    link.href = url;
+    link.click();
+  }
 
   return (
     <div className='form-container'>
+
       <div className="grid-container">
         <div className="empty-corner"></div>
         <div className="column-sums">
@@ -94,8 +105,8 @@ const EditableGrid: React.FC<EditableGridProps> = (props) => {
               className="column-sum"
               data-tooltip-place="top"
               data-tooltip-id="delete-column"
-              data-tooltip-content={columnIndex + ""} 
-              type="number" 
+              data-tooltip-content={columnIndex + ""}
+              type="number"
               value={sum}
               onChange={(e) => handleColumnSumChange(columnIndex, parseInt(e.target.value))}
             />
@@ -133,7 +144,7 @@ const EditableGrid: React.FC<EditableGridProps> = (props) => {
       <button onClick={() => addRow()}>Add row</button>
       <button onClick={() => addColumn()}>Add column</button>
       <button className="save" onClick={() => props.onChange({ grid, rowSums, columnSums })}>Save</button>
-
+      <button className="save" onClick={() => exportModel()}>Export</button>
 
       <Tooltip
         clickable
@@ -149,7 +160,7 @@ const EditableGrid: React.FC<EditableGridProps> = (props) => {
           <MdDelete onClick={() => handleDeleteColumn(parse(content))}></MdDelete>
         )}
       />
-    </div>
+    </div >
   );
 };
 

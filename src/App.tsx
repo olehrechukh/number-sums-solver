@@ -63,7 +63,7 @@ function App() {
 
   return (
     <>
-      <FaGear className='right' onClick={() => setModalOpen(true)}></FaGear>
+      <FaGear className='right' title='Edit data set' onClick={() => setModalOpen(true)}></FaGear>
 
       <Modal
         open={modalOpen}
