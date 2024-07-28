@@ -88,8 +88,8 @@ const EditableGrid: React.FC<EditableGridProps> = (props) => {
         </div>
       </div>
 
-      <button className="save" onClick={() => addRow()}>Add row</button>
-      <button className="save" onClick={() => addColumn()}>Add column</button>
+      <button onClick={() => addRow()}>Add row</button>
+      <button onClick={() => addColumn()}>Add column</button>
       <button className="save" onClick={() => props.onChange({ grid, rowSums, columnSums })}>Save</button>
 
     </div>
