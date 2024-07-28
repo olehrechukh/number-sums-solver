@@ -1,11 +1,11 @@
 import Grid from './components/Grid';
 import gridConfig from './gridConfig.json';
 import { GridModelRaw, GridModel } from './GridModel';
-import { reduceHigherValues as reduceHigherValuesAlgo, reduceCombinations as reduceCombinationsAlgo, checkSum as checkSumAlgo, SolutionFunction as SolutionAlgo } from './SolutionResolver';
+import { reduceHigherValues, reduceCombinations, selectSumValues, selectUniqueSumValues, SolutionFunction } from './solutionResolver';
 import './App.css'
 
 
-function convertGridModel(rawModel: GridModelRaw): GridModel {
+function initializeGridModel(rawModel: GridModelRaw): GridModel {
   return {
     grid: rawModel.grid.map(row => row.map(value => ({ value, hidden: false, solved: false }))),
     rowSums: rawModel.rowSums,
@@ -17,11 +17,11 @@ function convertGridModel(rawModel: GridModelRaw): GridModel {
 function App() {
 
   const solutionGrids: GridModel[] = [];
-  const solutions: SolutionAlgo[] = [reduceHigherValuesAlgo, reduceCombinationsAlgo, checkSumAlgo];
+  const solutions: SolutionFunction[] = [reduceHigherValues, reduceCombinations, selectSumValues, selectUniqueSumValues];
 
-  let grid = convertGridModel(gridConfig);
+  let gridModel = initializeGridModel(gridConfig);
 
-  solutionGrids.push(grid);
+  solutionGrids.push(gridModel);
 
   let solved = false;
 
@@ -29,16 +29,17 @@ function App() {
     let modified = false;
     for (const solution of solutions) {
 
-      const result = solution(grid);
-      grid = result.value;
-      grid.title += index + 1;
+      const result = solution(gridModel);
+
+      gridModel = result.value;
+      gridModel.title = solution.name + " [" + (index + 1) + "]";
 
       modified = modified || result.modified;
 
-      solutionGrids.push(grid);
+      solutionGrids.push(gridModel);
 
       // Check if the task has been solved
-      if (grid.columnSums.every(x => x === 0) && grid.columnSums.every(x => x === 0)) {
+      if (gridModel.columnSums.every(x => x === 0) && gridModel.rowSums.every(x => x === 0) && gridModel.grid.flatMap(x => x).every(x => x.hidden || x.solved)) {
         solved = true;
         break;
       }

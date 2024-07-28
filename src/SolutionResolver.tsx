@@ -3,185 +3,223 @@ import { GridModel, GridValue } from './GridModel';
 export type SolutionFunction = (input: GridModel) => GridModelResult;
 export interface GridModelResult { value: GridModel; modified: boolean; }
 
-
 export const reduceHigherValues: SolutionFunction = (props) => {
   const gridModel = structuredClone(props);
   const { grid, rowSums, columnSums } = gridModel;
   let modified = false;
 
-  for (let row = 0; row < grid.length; row++) {
-    const rowSum = rowSums[row];
+  grid.forEach((row, rowIndex) => {
+    const rowSum = rowSums[rowIndex];
 
-    for (let column = 0; column < grid[row].length; column++) {
-      const columnSum = columnSums[column];
-
-      const cell = grid[row][column];
+    row.forEach((cell, colIndex) => {
+      const columnSum = columnSums[colIndex];
       if (!isCompleted(cell) && (cell.value > rowSum || cell.value > columnSum)) {
         cell.hidden = true;
         modified = true;
       }
-    }
-  }
+    });
+  });
 
-  gridModel.title = 'reduceHigherValues';
   return { value: gridModel, modified };
-}
+};
+
+export const selectUniqueSumValues: SolutionFunction = (props) => {
+  const gridModel = structuredClone(props);
+  const { grid, rowSums, columnSums } = gridModel;
+  let modified = false;
+
+  const processValues = (values: GridValue[], targetSum: number) => {
+    const incompleteValues = values.filter(cell => !isCompleted(cell));
+    const combinations = generateCombinations(incompleteValues).filter(c => c.reduce((sum, current) => sum + current, 0) === targetSum);
+    const intersections = findIntersectionItems(combinations);
+
+    intersections.forEach((value, key) => {
+      const intersectedValues = incompleteValues.filter(x => x.value === key);
+      if (intersectedValues.length === value) {
+        intersectedValues.forEach(cell => setSolved(gridModel, cell));
+        modified = true;
+      }
+    });
+  };
+
+  grid.forEach((row, rowIndex) => {
+    processValues(row, rowSums[rowIndex]);
+  });
+
+  grid[0].forEach((_, columnIndex) => {
+    const columnValues = grid.map(row => row[columnIndex]);
+    processValues(columnValues, columnSums[columnIndex]);
+  });
+
+  return { value: gridModel, modified };
+};
 
 export const reduceCombinations: SolutionFunction = (props) => {
   const gridModel = structuredClone(props);
   const { grid } = gridModel;
   let modified = false;
 
-  const redundantXRows = getRedundantNumberX(gridModel);
-
-  for (let row = 0; row < grid.length; row++) {
-    const rows = redundantXRows.get(row);
-
-    if (rows != undefined) {
-      for (let column = 0; column < grid[row].length; column++) {
-        const cell = grid[row][column];
-        if (rows.includes(cell.value) && !isCompleted(cell)) {
-          cell.hidden = true;
-          modified = true;
-        }
-      }
-    }
-  }
-
-  const redundantYRows = getRedundantNumberY(gridModel);
-  for (let column = 0; column < grid.length; column++) {
-    const columns = redundantYRows.get(column);
-
-    if (columns == undefined) {
-      continue;
-    }
-
-    for (let row = 0; row < grid[column].length; row++) {
-
-      const cell = grid[row][column];
-      if (columns.includes(cell.value) && !isCompleted(cell)) {
+  const hideRedundantValues = (values: GridValue[], redundantValues: number[]) => {
+    values.forEach(cell => {
+      if (redundantValues.includes(cell.value) && !isCompleted(cell)) {
         cell.hidden = true;
         modified = true;
       }
+    });
+  };
+
+  const redundantRows = getRedundantNumbers(gridModel, 'rowSums');
+  grid.forEach((row, rowIndex) => {
+    const redundantValues = redundantRows.get(rowIndex);
+    if (redundantValues) {
+      hideRedundantValues(row, redundantValues);
     }
-  }
+  });
 
-  gridModel.title = 'reduceCombinations';
+  const redundantColumns = getRedundantNumbers(gridModel, 'columnSums');
+  grid[0].forEach((_, colIndex) => {
+    const columnValues = grid.map(row => row[colIndex]);
+    const redundantValues = redundantColumns.get(colIndex);
+    if (redundantValues) {
+      hideRedundantValues(columnValues, redundantValues);
+    }
+  });
+
   return { value: gridModel, modified };
-}
+};
 
-export const checkSum: SolutionFunction = (props) => {
+
+export const selectSumValues: SolutionFunction = (props) => {
   const gridModel = structuredClone(props);
   const { grid, rowSums, columnSums } = gridModel;
   let modified = false;
 
-  for (let row = 0; row < grid.length; row++) {
-    const rowSum = rowSums[row];
-    const calculatedRowSum = grid[row].filter(x => !isCompleted(x)).reduce((sum, current) => sum + current.value, 0);
+  grid.forEach((row, rowIndex) => {
+    const rowSum = rowSums[rowIndex];
+    const calculatedRowSum = calculateSum(row);
 
     if (calculatedRowSum === rowSum) {
-      for (let column = 0; column < grid[row].length; column++) {
-        const cell = grid[row][column];
+      row.forEach(cell => {
         if (!isCompleted(cell)) {
-          cell.solved = true;
-          rowSums[row] -= cell.value;
-          columnSums[column] -= cell.value;
+          setSolved(gridModel, cell);
 
           modified = true;
         }
-      }
+      });
     }
 
-    const columnSum = columnSums[row];
-    const columnValues = gridModel.grid.map(x => x[row]).filter(x => !isCompleted(x)).reduce((sum, current) => sum + current.value, 0);
+    const columnSum = columnSums[rowIndex];
+    const columnValues = grid.map(x => x[rowIndex]);
+    const calculatedColumnSum = calculateSum(columnValues);
 
+    if (calculatedColumnSum === columnSum) {
+      columnValues.forEach((cell) => {
+        setSolved(gridModel, cell);
 
-    if (columnSum === columnValues) {
-      for (let column = 0; column < grid[row].length; column++) {
-        const cell = grid[column][row];
-        if (!isCompleted(cell)) {
-          cell.solved = true;
-          columnSums[row] -= cell.value;
-          rowSums[column] -= cell.value;
-          modified = true;
-        }
-      }
+        modified = true;
+      });
     }
-  }
+  });
 
-  gridModel.title = 'checkSum';
   return { value: gridModel, modified };
-}
+};
 
-function getRedundantNumberX(gridModel: GridModel): Map<number, number[]> {
-  const map: Map<number, number[]> = new Map<number, number[]>();
+const calculateSum = (values: GridValue[]): number =>
+  values.filter(x => !isCompleted(x)).reduce((sum, current) => sum + current.value, 0);
 
-  for (let row = 0; row < gridModel.grid.length; row++) {
+const setSolved = (gridModel: GridModel, cell: GridValue) => {
+  const [row, column] = findCellIndex(gridModel.grid, cell);
 
-    const rowValues = gridModel.grid[row].filter(x => !isCompleted(x));
-    const combinations = generateCombinations(rowValues);
-    const rowValue = gridModel.rowSums[row];
+  if (isCompleted(cell)) {
+    return;
+  }
 
-    const possibleNumbers = combinations.filter((x) => x.reduce((sum, current) => sum + current, 0) === rowValue).flatMap(x => x).filter(onlyUnique);
+  cell.solved = true;
 
-    const uniqueRowValues = rowValues.map(x => x.value).filter(onlyUnique);
-    if (uniqueRowValues.length != possibleNumbers.length) {
+  gridModel.rowSums[row] -= cell.value;
+  gridModel.columnSums[column] -= cell.value;
+};
 
-      map.set(row, uniqueRowValues.filter(value => !possibleNumbers.includes(value)));
+const findCellIndex = (gridModel: GridValue[][], cell: GridValue): [row: number, column: number] => {
+  for (let rowIndex = 0; rowIndex < gridModel.length; rowIndex++) {
+    for (let colIndex = 0; colIndex < gridModel[rowIndex].length; colIndex++) {
+      if (gridModel[rowIndex][colIndex] === cell) {
+        return [rowIndex, colIndex];
+      }
     }
   }
 
-  return map;
-}
+  throw new RangeError();
+};
 
-function getRedundantNumberY(gridModel: GridModel): Map<number, number[]> {
-  const map: Map<number, number[]> = new Map<number, number[]>();
+const findIntersectionItems = (arrays: number[][]): Map<number, number> => {
+  if (arrays.length === 0) return new Map();
 
-  for (let row = 0; row < gridModel.grid.length; row++) {
+  const countMaps: Map<number, number>[] = arrays.map(arr => {
+    const map: Map<number, number> = new Map();
+    arr.forEach(num => {
+      map.set(num, (map.get(num) || 0) + 1);
+    });
+    return map;
+  });
 
-    const columnValues = gridModel.grid.map(x => x[row]).filter(x => !isCompleted(x));
-    const combinations = generateCombinations(columnValues);
-    const rowValue = gridModel.columnSums[row];
+  const resultCountMap: Map<number, number> = new Map();
 
-    const possibleNumbers = combinations.filter((x) => x.reduce((sum, current) => sum + current, 0) === rowValue).flatMap(x => x).filter(onlyUnique);
+  countMaps[0].forEach((count, num) => {
+    resultCountMap.set(num, count);
+  });
 
-    const uniqueRowValues = columnValues.map(x => x.value).filter(onlyUnique);
-    if (uniqueRowValues.length != possibleNumbers.length) {
-
-      map.set(row, uniqueRowValues.filter(value => !possibleNumbers.includes(value)));
-    }
+  for (let i = 1; i < countMaps.length; i++) {
+    const currentMap = countMaps[i];
+    resultCountMap.forEach((count, num) => {
+      if (currentMap.has(num)) {
+        resultCountMap.set(num, Math.min(count, currentMap.get(num)!));
+      } else {
+        resultCountMap.delete(num);
+      }
+    });
   }
 
-  return map;
-}
+  return resultCountMap;
+};
 
-function generateCombinations(values1: GridValue[]): number[][] {
+const getRedundantNumbers = (gridModel: GridModel, sumType: 'rowSums' | 'columnSums'): Map<number, number[]> => {
+  const map: Map<number, number[]> = new Map<number, number[]>();
+
+  gridModel.grid.forEach((_, index) => {
+    const values = (sumType === 'rowSums' ? gridModel.grid[index] : gridModel.grid.map(x => x[index]))
+      .filter(x => !isCompleted(x));
+    const combinations = generateCombinations(values);
+    const sumValue = sumType === 'rowSums' ? gridModel.rowSums[index] : gridModel.columnSums[index];
+    const possibleNumbers = combinations.filter(x => x.reduce((sum, current) => sum + current, 0) === sumValue).flatMap(x => x).filter(onlyUnique);
+
+    const uniqueValues = values.map(x => x.value).filter(onlyUnique);
+    if (uniqueValues.length !== possibleNumbers.length) {
+      map.set(index, uniqueValues.filter(value => !possibleNumbers.includes(value)));
+    }
+  });
+
+  return map;
+};
+
+const generateCombinations = (values: GridValue[]): number[][] => {
   const result: number[][] = [];
-
-  const values = values1.map(x => x.value).sort();
-
-  // There are 2^n possible subsets excluding the empty subset, hence we iterate from 1 to 2^n - 1
-  const totalCombinations = 1 << values.length; // This is 2^n
+  const nums = values.map(x => x.value).sort();
+  const totalCombinations = 1 << nums.length;
 
   for (let i = 1; i < totalCombinations; i++) {
     const subset: number[] = [];
-    for (let j = 0; j < values.length; j++) {
-      // Check if the j-th element is included in the i-th subset
+    for (let j = 0; j < nums.length; j++) {
       if (i & (1 << j)) {
-        subset.push(values[j]);
+        subset.push(nums[j]);
       }
     }
-
     result.push(subset);
   }
 
   return result;
-}
+};
 
-function onlyUnique(value: number, index: number, array: number[]): boolean {
-  return array.indexOf(value) === index;
-}
+const onlyUnique = (value: number, index: number, array: number[]): boolean => array.indexOf(value) === index;
 
-const isCompleted = (value: GridValue): boolean => {
-  return value.hidden || value.solved;
-}
+const isCompleted = (value: GridValue): boolean => value.hidden || value.solved;

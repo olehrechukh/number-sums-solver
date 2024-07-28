@@ -25,7 +25,11 @@ const Grid: React.FC<GridModel> = (props) => {
           {grid.map((row, rowIndex) => (
             <div key={rowIndex} className="grid-row">
               {row.map((cell, cellIndex) => (
-                <div key={cellIndex} className={`grid-cell ${cell.hidden ? 'transparent' : ''} ${cell.solved ? 'solved' : ''}`} title={`Original value: ${cell.value}`}>{cell.value}</div>
+                <div key={cellIndex}
+                  className={`grid-cell ${cell.hidden ? 'transparent' : ''} ${cell.solved ? 'solved' : ''}`}
+                  title={`${cell.hidden ? `Original value: ${cell.value}` : ''}`}>
+                  {cell.value}
+                </div>
               ))}
             </div>
           ))}

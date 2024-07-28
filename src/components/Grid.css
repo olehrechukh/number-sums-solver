@@ -9,10 +9,6 @@
     margin-bottom: 10px;
 }
 
-.header-spacer {
-    grid-area: .;
-}
-
 .column-sums {
     grid-area: column-sums;
     display: flex;
