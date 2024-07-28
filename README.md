@@ -1,7 +1,7 @@
 
 # Number Sums Solver
 
-Number Sums Solver is a solver written in React and TypeScript for the mobile game Number Sums. It leverages four algorithms to efficiently solve the game puzzles.
+Number Sums Solver is a solver written in React and TypeScript for the mobile game [Number Sums](https://apps.apple.com/us/app/number-sums-numbers-game/id6449427809). It leverages four algorithms to solve the game puzzles efficiently.
 
 ## Key Features
 
