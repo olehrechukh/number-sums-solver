@@ -1,9 +1,17 @@
+import { useState } from 'react';
+import { Modal } from 'react-responsive-modal';
+
 import Grid from './components/Grid';
+import EditableGrid from './components/EditableGrid';
+
 import gridConfig from './gridConfig.json';
+
 import { GridModelRaw, GridModel } from './GridModel';
 import { hideHigherValues, hideCombinations, solveSumValues, solveUniqueSumValues, SolutionFunction } from './solutionSolver';
-import './App.css'
+import { FaGear } from "react-icons/fa6";
 
+import './App.css';
+import 'react-responsive-modal/styles.css';
 
 function initializeGridModel(rawModel: GridModelRaw): GridModel {
   return {
@@ -13,13 +21,15 @@ function initializeGridModel(rawModel: GridModelRaw): GridModel {
     title: "original"
   };
 }
-
 function App() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [config, setConfig] = useState(gridConfig);
 
   const solutionGrids: GridModel[] = [];
+
   const solutions: SolutionFunction[] = [hideHigherValues, hideCombinations, solveSumValues, solveUniqueSumValues];
 
-  let gridModel = initializeGridModel(gridConfig);
+  let gridModel = initializeGridModel(config);
 
   solutionGrids.push(gridModel);
 
@@ -45,19 +55,28 @@ function App() {
       }
     }
 
-
     if (!modified) {
       console.error("No solution found");
       break;
     }
   }
 
-
   return (
-    <div className="app">
+    <>
+      <FaGear className='right' onClick={() => setModalOpen(true)}></FaGear>
 
-      {solutionGrids.map((grid, index) => <Grid {...grid} key={index} />)}
-    </div>
+      <Modal
+        open={modalOpen}
+        onClose={() => { setModalOpen(false) }} center>
+        <EditableGrid data={structuredClone(gridConfig)} onChange={setConfig}></EditableGrid>
+
+      </Modal>
+
+      <div className="app" id='app'>
+        {solutionGrids.map((grid, index) => <Grid {...grid} key={index} />)}
+      </div>
+    </>
+
   );
 }
 

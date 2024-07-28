@@ -43,10 +43,13 @@
   color: #888;
 }
 
-/* App.css */
 .app {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
+}
+
+.right{
+  float: right;
 }
